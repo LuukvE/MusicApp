@@ -13,7 +13,7 @@ const electron = (window as any).electronAPI;
 
 export default function App() {
   const { load } = useFetch();
-  const { config, update } = useStore(({ config, update }) => ({ config, update }));
+  const { maximized, selected, update } = useStore(({ maximized, selected, update }) => ({ maximized, selected, update }));
 
   const closeWindow = useCallback(() => electron.closeWindow(), []);
 
@@ -22,8 +22,8 @@ export default function App() {
   const toggleMaxWindow = useCallback(() => {
     electron.toggleMaxWindow();
 
-    update({ config: { ...config, maximized: !config.maximized } });
-  }, [config]);
+    update({ maximized: !maximized });
+  }, [maximized]);
 
   useEffect(() => {
     load();
@@ -38,13 +38,13 @@ export default function App() {
         <FontAwesomeIcon
           className="cursor-pointer hover:text-white"
           onClick={toggleMaxWindow}
-          icon={config.maximized ? faWindowRestore : faWindowMaximize}
+          icon={maximized ? faWindowRestore : faWindowMaximize}
         />
         <FontAwesomeIcon className="cursor-pointer hover:text-white" onClick={closeWindow} icon={faTimes} />
       </div>
       <div className="flex grow basis-0 overflow-hidden">
         <TrackList />
-        {config.selected && <Detail />}
+        {selected && <Detail />}
       </div>
       <Player />
     </div>

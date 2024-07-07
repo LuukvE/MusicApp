@@ -5,15 +5,12 @@ import { twMerge } from 'tailwind-merge';
 import useStore from '../hooks/useStore';
 
 export default function TrackList() {
-  const { tracks, config, update } = useStore(({ tracks, config, update }) => ({ tracks, config, update }));
+  const { tracks, selected, update } = useStore(({ tracks, selected, update }) => ({ tracks, selected, update }));
   const list = useMemo(() => Object.values(tracks), [tracks]);
 
   const clickTrack = useCallback((track: Track) => {
     update({
-      config: {
-        ...config,
-        selected: track.id
-      }
+      selected: track.id
     });
   }, []);
 
@@ -32,7 +29,7 @@ export default function TrackList() {
           onDoubleClick={() => playTrack(track)}
           className={twMerge(
             'flex cursor-pointer items-center gap-4 border-b border-b-white/10 p-2 text-sm text-white hover:bg-white/10',
-            config.selected === track.id ? 'bg-white/10' : ''
+            selected === track.id ? 'bg-white/10' : ''
           )}
           key={track.id}
         >

@@ -24,12 +24,12 @@ export type Playlist = {
 };
 
 export type State = {
-  config: {
-    playing: boolean;
-    maximized: boolean;
-    selected: null | ID;
-  };
+  playing: boolean;
+  maximized: boolean;
+  selected: null | ID;
   queue: Track[];
+  volume: number;
+  muted: boolean;
   secondsPlayed: number;
   tracks: Record<ID, Track>;
   artists: Record<ID, Artist>;
