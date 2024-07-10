@@ -1,7 +1,8 @@
+import react from '@vitejs/plugin-react';
 import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
-import { pluginExposeRenderer } from './vite.base.config';
+import { pluginExposeRenderer, pluginHotRestart } from './vite.base.config';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -16,7 +17,15 @@ export default defineConfig((env) => {
     build: {
       outDir: `.vite/renderer/${name}`
     },
-    plugins: [pluginExposeRenderer(name)],
+    plugins: [
+      react({
+        babel: {
+          plugins: [['babel-plugin-react-compiler', {}]]
+        }
+      }),
+      pluginExposeRenderer(name),
+      pluginHotRestart('reload')
+    ],
     resolve: {
       preserveSymlinks: true
     },

@@ -1,10 +1,8 @@
-import { useMemo } from 'react';
-
 import useStore from '../hooks/useStore';
 
 export default function Detail() {
   const { selected, tracks } = useStore(({ selected, tracks }) => ({ selected, tracks }));
-  const track = useMemo(() => tracks[selected], [selected, tracks]);
+  const track = tracks[selected];
 
   if (!track) return false;
 

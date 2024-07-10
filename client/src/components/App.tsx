@@ -1,29 +1,31 @@
 import '@fortawesome/fontawesome-svg-core';
 import { faTimes, faWindowMaximize, faWindowMinimize, faWindowRestore } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
+import { ElectronAPI } from 'src/preload';
 
 import useFetch from '../hooks/useFetch';
 import useStore from '../hooks/useStore';
 import Detail from './Detail';
 import Player from './Player';
+import Queue from './Queue';
 import TrackList from './TrackList';
 
-const electron = (window as any).electronAPI;
+const electron = (window as any).electronAPI as ElectronAPI;
 
 export default function App() {
   const { load } = useFetch();
   const { maximized, selected, update } = useStore(({ maximized, selected, update }) => ({ maximized, selected, update }));
 
-  const closeWindow = useCallback(() => electron.closeWindow(), []);
+  const closeWindow = () => electron.closeWindow();
 
-  const minimizeWindow = useCallback(() => electron.minimizeWindow(), []);
+  const minimizeWindow = () => electron.minimizeWindow();
 
-  const toggleMaxWindow = useCallback(() => {
+  const toggleMaxWindow = () => {
     electron.toggleMaxWindow();
 
     update({ maximized: !maximized });
-  }, [maximized]);
+  };
 
   useEffect(() => {
     load();
@@ -45,6 +47,7 @@ export default function App() {
       <div className="flex grow basis-0 overflow-hidden">
         <TrackList />
         {selected && <Detail />}
+        {!selected && <Queue />}
       </div>
       <Player />
     </div>

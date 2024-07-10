@@ -1,6 +1,7 @@
 import {
   faChevronLeft,
   faChevronRight,
+  faList,
   faPause,
   faPlay,
   faRepeat,
@@ -11,15 +12,14 @@ import {
   faVolumeXmark
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import usePlayer from '../hooks/usePlayer';
 import useStore from '../hooks/useStore';
 
 export default function Player() {
-  const { playing, volume, muted, update, artists, shuffle, repeat } = useStore(
-    ({ queue, artists, playing, volume, muted, update, shuffle, repeat, secondsPlayed }) => ({
+  const { playing, volume, muted, update, artists, shuffle, repeat, queue, selected } = useStore(
+    ({ queue, artists, playing, volume, muted, update, shuffle, repeat, secondsPlayed, selected }) => ({
       queue,
       playing,
       volume,
@@ -28,6 +28,7 @@ export default function Player() {
       repeat,
       update,
       artists,
+      selected,
       secondsPlayed
     })
   );
@@ -52,7 +53,7 @@ export default function Player() {
     onStartDragging
   } = usePlayer();
 
-  const volumeIcon = useMemo(() => {
+  const volumeIcon = (() => {
     if (muted) return faVolumeXmark;
 
     if (volumeProgress > 50) return faVolumeHigh;
@@ -60,7 +61,7 @@ export default function Player() {
     if (volumeProgress > 0) return faVolumeLow;
 
     return faVolumeOff;
-  }, [volumeProgress, muted]);
+  })();
 
   return (
     <div
@@ -148,6 +149,15 @@ export default function Player() {
         </div>
       </div>
       <div className="flex w-52 items-center justify-end px-4">
+        <FontAwesomeIcon
+          onClick={() => update({ selected: null })}
+          className={twMerge(
+            'cursor-pointer px-4 py-2 text-white/70 hover:text-white',
+            !queue.length ? 'pointer-events-none text-white/20' : '',
+            !selected && !!queue.length ? 'text-[#f5a449] hover:text-[#f7b266]' : ''
+          )}
+          icon={faList}
+        />
         <div
           onClick={() => update({ muted: !muted, volume: muted && !volume ? 0.5 : volume })}
           className="w-5 cursor-pointer text-sm text-white/50 hover:text-white"

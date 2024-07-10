@@ -1,4 +1,4 @@
-import { MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { MouseEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { Repeat } from '../../../types';
 import useStore from '../hooks/useStore';
@@ -23,27 +23,24 @@ export default function usePlayer() {
     })
   );
 
-  const track = useMemo(() => queue[0], [queue]);
+  const track = queue[0];
+  const disabled = {
+    goPrev: !queue.length || (repeat === 'none' && !!queue[0].first),
+    goNext: !queue.length || (repeat === 'none' && (!queue[1] || !!queue[1].first))
+  };
 
-  const disabled = useMemo(() => {
-    return {
-      goPrev: !queue.length || (repeat === 'none' && !!queue[0].first),
-      goNext: !queue.length || (repeat === 'none' && (!queue[1] || !!queue[1].first))
-    };
-  }, [queue, repeat]);
+  const onPlaying = () => update({ playing: true });
 
-  const onPlaying = useCallback(() => update({ playing: true }), [update]);
+  const onPause = () => update({ playing: false });
 
-  const onPause = useCallback(() => update({ playing: false }), [update]);
-
-  const clickPlay = useCallback(() => {
+  const clickPlay = () => {
     if (!track) return;
 
     if (playing) audioElem.current?.pause();
     else audioElem.current?.play();
-  }, [track, playing]);
+  };
 
-  const clickShuffle = useCallback(() => {
+  const clickShuffle = () => {
     if (!queue.length) return;
 
     const ids = queue.map((t) => t.id);
@@ -63,9 +60,9 @@ export default function usePlayer() {
     }));
 
     update({ shuffle: !shuffle, queue: payload });
-  }, [update, shuffle, queue, tracks]);
+  };
 
-  const clickRepeat = useCallback(() => {
+  const clickRepeat = () => {
     const map: Record<Repeat, Repeat> = {
       none: 'queue',
       queue: 'track',
@@ -73,39 +70,33 @@ export default function usePlayer() {
     };
 
     update({ repeat: map[repeat] });
-  }, [update, repeat]);
+  };
 
-  const onDrag = useCallback(
-    (e: MouseEvent, forceDrag?: 'volume' | 'played') => {
-      if (!selectedElem.current) return;
+  const onDrag = (e: MouseEvent, forceDrag?: 'volume' | 'played') => {
+    if (!selectedElem.current) return;
 
-      const { left } = selectedElem.current.getBoundingClientRect();
+    const { left } = selectedElem.current.getBoundingClientRect();
 
-      const progress = Math.max(0, Math.min(1, (e.pageX - left) / selectedElem.current.clientWidth));
+    const progress = Math.max(0, Math.min(1, (e.pageX - left) / selectedElem.current.clientWidth));
 
-      setMouseX(progress);
+    setMouseX(progress);
 
-      // forceDrag will be used instead of dragging if provided
-      // this allows onStartDragging() to skip the React render cycle
-      if ((forceDrag || dragging) === 'volume') update({ volume: progress });
-    },
-    [dragging]
-  );
+    // forceDrag will be used instead of dragging if provided
+    // this allows onStartDragging() to skip the React render cycle
+    if ((forceDrag || dragging) === 'volume') update({ volume: progress });
+  };
 
-  const onStartDragging = useCallback(
-    (e: MouseEvent, type: 'played' | 'volume') => {
-      if (type === 'played' && !track) return;
+  const onStartDragging = (e: MouseEvent, type: 'played' | 'volume') => {
+    if (type === 'played' && !track) return;
 
-      selectedElem.current = e.target as HTMLDivElement;
+    selectedElem.current = e.target as HTMLDivElement;
 
-      setDragging(type);
+    setDragging(type);
 
-      onDrag(e, type);
-    },
-    [setDragging, onDrag, track]
-  );
+    onDrag(e, type);
+  };
 
-  const onStopDragging = useCallback(() => {
+  const onStopDragging = () => {
     if (!dragging) return;
 
     if (dragging === 'played' && track) {
@@ -117,9 +108,9 @@ export default function usePlayer() {
     if (dragging === 'volume') update({ volume: mouseX });
 
     setDragging('');
-  }, [update, track, setDragging, dragging, mouseX]);
+  };
 
-  const goPrev = useCallback(() => {
+  const goPrev = () => {
     if (!queue.length) return;
 
     const payload = [...queue];
@@ -127,9 +118,9 @@ export default function usePlayer() {
     payload.unshift(payload.pop());
 
     update({ queue: payload });
-  }, [queue, update]);
+  };
 
-  const goNext = useCallback(() => {
+  const goNext = () => {
     if (!queue.length) return;
 
     const payload = [...queue];
@@ -145,27 +136,27 @@ export default function usePlayer() {
     payload.push(current);
 
     update({ queue: payload });
-  }, [queue, update]);
+  };
 
-  const playedProgress = useMemo(() => {
+  const playedProgress = (() => {
     if (!track) return 0;
 
     if (dragging === 'played') return mouseX * 100;
 
     return (secondsPlayed / track.length) * 100;
-  }, [dragging, track, secondsPlayed, mouseX]);
+  })();
 
-  const fullSeconds = useMemo(() => {
+  const fullSeconds = (() => {
     if (dragging !== 'played') return Math.floor(secondsPlayed);
 
     return Math.floor((track.length * playedProgress) / 100);
-  }, [dragging, track, playedProgress, secondsPlayed]);
+  })();
 
-  const volumeProgress = useMemo(() => {
+  const volumeProgress = (() => {
     if (dragging === 'volume') return mouseX * 100;
 
     return volume * 100;
-  }, [dragging, volume, mouseX]);
+  })();
 
   useEffect(() => {
     if (!track) return;
