@@ -1,6 +1,6 @@
 {
-  "name": "music-app",
-  "productName": "music-app",
+  "name": "shower-singer",
+  "productName": "shower-singer",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",

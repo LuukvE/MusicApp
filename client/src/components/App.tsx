@@ -1,5 +1,5 @@
 import '@fortawesome/fontawesome-svg-core';
-import { faTimes, faWindowMaximize, faWindowMinimize, faWindowRestore } from '@fortawesome/free-solid-svg-icons';
+import { faLockOpen, faTimes, faWindowMaximize, faWindowMinimize, faWindowRestore } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect } from 'react';
 import { ElectronAPI } from 'src/preload';
@@ -19,6 +19,8 @@ export default function App() {
 
   const closeWindow = () => electron.closeWindow();
 
+  const googleRedirect = () => electron.googleRedirect();
+
   const minimizeWindow = () => electron.minimizeWindow();
 
   const toggleMaxWindow = () => {
@@ -34,6 +36,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col">
       <div className="app-region flex h-5 w-full items-center justify-end gap-2 px-2 text-sm text-white/70">
+        <FontAwesomeIcon className="cursor-pointer hover:text-white" onClick={googleRedirect} icon={faLockOpen} />
         <div className="cursor-pointer hover:text-white">
           <FontAwesomeIcon className="-translate-y-1" onClick={minimizeWindow} icon={faWindowMinimize} />
         </div>

@@ -19,3 +19,7 @@ _What are you allowed to see and do?_
 # UI
 
 - THE REST
+
+## Installation
+
+Rename `.example.env` to `.env` and provide Google credentials

@@ -1,8 +1,55 @@
-import { BrowserWindow, app, ipcMain } from 'electron';
+import { BrowserWindow, app, ipcMain, session, shell } from 'electron';
 import path from 'path';
 
-const createWindow = () => {
-  const win = new BrowserWindow({
+const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
+
+let mainWindow: BrowserWindow | null = null;
+
+(function init() {
+  if (isDev && process.platform === 'win32') {
+    app.setAsDefaultProtocolClient('shower', process.execPath, [path.resolve(process.argv[1])]);
+  } else {
+    app.setAsDefaultProtocolClient('shower');
+  }
+
+  app.on('open-url', function (event, data) {
+    console.log('hi', data);
+  });
+
+  if (!app.requestSingleInstanceLock()) return app.quit();
+
+  app.on('second-instance', (e, argv) => {
+    const url = argv.pop();
+
+    signin(url);
+  });
+
+  app.on('ready', createWindow);
+
+  app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit());
+
+  app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow());
+})();
+
+function signin(url: string) {
+  const sessionID = url.split('/')[2];
+
+  console.log(sessionID);
+
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    {
+      urls: ['http://localhost:8080/*']
+    },
+    (details, callback) => {
+      details.requestHeaders['Authorization'] = sessionID;
+
+      callback({ requestHeaders: details.requestHeaders });
+    }
+  );
+}
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     frame: false,
@@ -13,32 +60,31 @@ const createWindow = () => {
 
   ipcMain.handle('close-window', closeWindow);
   ipcMain.handle('minimize-window', minimizeWindow);
+  ipcMain.handle('google-redirect', googleRedirect);
   ipcMain.handle('toggle-max-window', toggleMaxWindow);
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  if (isDev) {
+    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    win.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
-  win.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
   function closeWindow() {
-    win.close();
+    mainWindow.close();
   }
 
   function minimizeWindow() {
-    win.minimize();
+    mainWindow.minimize();
+  }
+
+  function googleRedirect() {
+    shell.openExternal('http://localhost:8080/google/sign-in');
   }
 
   function toggleMaxWindow() {
-    if (win.isMaximized()) win.unmaximize();
-    else win.maximize();
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    else mainWindow.maximize();
   }
-};
-
-app.on('ready', createWindow);
-
-app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit());
-
-app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow());
+}

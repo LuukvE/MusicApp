@@ -34,6 +34,8 @@ export default function usePlayer() {
   const onPause = () => update({ playing: false });
 
   const clickPlay = () => {
+    fetch('http://localhost:8080/lala');
+
     if (!track) return;
 
     if (playing) audioElem.current?.pause();

@@ -48,3 +48,10 @@ export type State = {
     collection: "playlists" | "tracks" | "artists"
   ) => void;
 };
+
+export type GoogleUser = {
+  email: string;
+  email_verified: 'true' | 'false',
+  name: string;
+  picture: string;
+}
