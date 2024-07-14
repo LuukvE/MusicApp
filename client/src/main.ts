@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain, session, shell } from 'electron';
+import { BeforeSendResponse, BrowserWindow, OnBeforeSendHeadersListenerDetails, app, ipcMain, session, shell } from 'electron';
 import path from 'path';
 
 const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
@@ -34,8 +34,6 @@ let mainWindow: BrowserWindow | null = null;
 function signin(url: string) {
   const sessionID = url.split('/')[2];
 
-  console.log(sessionID);
-
   session.defaultSession.webRequest.onBeforeSendHeaders(
     {
       urls: ['http://localhost:8080/*']
@@ -46,6 +44,14 @@ function signin(url: string) {
       callback({ requestHeaders: details.requestHeaders });
     }
   );
+
+  mainWindow.focus();
+
+  if (isDev) {
+    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+  }
 }
 
 function createWindow() {
@@ -58,6 +64,7 @@ function createWindow() {
     }
   });
 
+  ipcMain.handle('signout', signout);
   ipcMain.handle('close-window', closeWindow);
   ipcMain.handle('minimize-window', minimizeWindow);
   ipcMain.handle('google-redirect', googleRedirect);
@@ -77,6 +84,10 @@ function createWindow() {
 
   function minimizeWindow() {
     mainWindow.minimize();
+  }
+
+  function signout() {
+    session.defaultSession.removeAllListeners('onBeforeSendHeaders');
   }
 
   function googleRedirect() {

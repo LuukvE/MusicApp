@@ -1,10 +1,9 @@
-import react from '@vitejs/plugin-react';
+import react from '@vitejs/plugin-react-swc';
 import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
-import { pluginExposeRenderer, pluginHotRestart } from './vite.base.config';
+import { pluginExposeRenderer } from './vite.base.config';
 
-// https://vitejs.dev/config
 export default defineConfig((env) => {
   const forgeEnv = env as ConfigEnv<'renderer'>;
   const { root, mode, forgeConfigSelf } = forgeEnv;
@@ -17,15 +16,7 @@ export default defineConfig((env) => {
     build: {
       outDir: `.vite/renderer/${name}`
     },
-    plugins: [
-      react({
-        babel: {
-          plugins: [['babel-plugin-react-compiler', {}]]
-        }
-      }),
-      pluginExposeRenderer(name),
-      pluginHotRestart('reload')
-    ],
+    plugins: [react(), pluginExposeRenderer(name)],
     resolve: {
       preserveSymlinks: true
     },

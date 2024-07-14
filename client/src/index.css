@@ -25,3 +25,8 @@
   height: 5px;
   display: block;
 }
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

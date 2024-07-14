@@ -23,6 +23,18 @@ export type Playlist = {
   thumbnail?: string;
 };
 
+export type User = {
+  id: ID;
+  name: string;
+  email: string;
+  picture: string;
+};
+
+export type Session = {
+  id: ID;
+  user: ID;
+};
+
 export type QueueTrack = Track & {
   first?: boolean;
 };
@@ -39,6 +51,8 @@ export type State = {
   repeat: Repeat;
   shuffle: boolean;
   secondsPlayed: number;
+  session: null | Session;
+  users: Record<ID, User>;
   tracks: Record<ID, Track>;
   artists: Record<ID, Artist>;
   playlists: Record<ID, Playlist>;
@@ -51,7 +65,7 @@ export type State = {
 
 export type GoogleUser = {
   email: string;
-  email_verified: 'true' | 'false',
+  email_verified: "true" | "false";
   name: string;
   picture: string;
-}
+};

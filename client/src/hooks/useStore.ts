@@ -13,6 +13,8 @@ export default create<State>((set) => ({
   queue: [],
   secondsPlayed: 0,
   playlists: {},
+  session: null,
+  users: {},
   tracks: {},
   artists: {},
   update: (payload) => set((state) => ({ ...state, ...payload })),

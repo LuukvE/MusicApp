@@ -12,6 +12,7 @@ import {
   faVolumeXmark
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import usePlayer from '../hooks/usePlayer';
@@ -53,7 +54,7 @@ export default function Player() {
     onStartDragging
   } = usePlayer();
 
-  const volumeIcon = (() => {
+  const volumeIcon = useMemo(() => {
     if (muted) return faVolumeXmark;
 
     if (volumeProgress > 50) return faVolumeHigh;
@@ -61,7 +62,7 @@ export default function Player() {
     if (volumeProgress > 0) return faVolumeLow;
 
     return faVolumeOff;
-  })();
+  }, [muted, volumeProgress]);
 
   return (
     <div

@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 const electronAPI = {
+  signout: () => ipcRenderer.invoke('signout'),
   closeWindow: () => ipcRenderer.invoke('close-window'),
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
   googleRedirect: () => ipcRenderer.invoke('google-redirect'),

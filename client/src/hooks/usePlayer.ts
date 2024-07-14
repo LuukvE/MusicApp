@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { MouseEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { Repeat } from '../../../types';
 import useStore from '../hooks/useStore';
@@ -23,26 +23,30 @@ export default function usePlayer() {
     })
   );
 
-  const track = queue[0];
-  const disabled = {
-    goPrev: !queue.length || (repeat === 'none' && !!queue[0].first),
-    goNext: !queue.length || (repeat === 'none' && (!queue[1] || !!queue[1].first))
-  };
+  const track = useMemo(() => queue[0], [queue]);
 
-  const onPlaying = () => update({ playing: true });
+  const disabled = useMemo(
+    () => ({
+      goPrev: !queue.length || (repeat === 'none' && !!queue[0].first),
+      goNext: !queue.length || (repeat === 'none' && (!queue[1] || !!queue[1].first))
+    }),
+    [queue, repeat]
+  );
 
-  const onPause = () => update({ playing: false });
+  const onPlaying = useCallback(() => update({ playing: true }), []);
 
-  const clickPlay = () => {
+  const onPause = useCallback(() => update({ playing: false }), []);
+
+  const clickPlay = useCallback(() => {
     fetch('http://localhost:8080/lala');
 
     if (!track) return;
 
     if (playing) audioElem.current?.pause();
     else audioElem.current?.play();
-  };
+  }, [track, playing]);
 
-  const clickShuffle = () => {
+  const clickShuffle = useCallback(() => {
     if (!queue.length) return;
 
     const ids = queue.map((t) => t.id);
@@ -62,9 +66,9 @@ export default function usePlayer() {
     }));
 
     update({ shuffle: !shuffle, queue: payload });
-  };
+  }, [queue]);
 
-  const clickRepeat = () => {
+  const clickRepeat = useCallback(() => {
     const map: Record<Repeat, Repeat> = {
       none: 'queue',
       queue: 'track',
@@ -72,33 +76,39 @@ export default function usePlayer() {
     };
 
     update({ repeat: map[repeat] });
-  };
+  }, [repeat]);
 
-  const onDrag = (e: MouseEvent, forceDrag?: 'volume' | 'played') => {
-    if (!selectedElem.current) return;
+  const onDrag = useCallback(
+    (e: MouseEvent, forceDrag?: 'volume' | 'played') => {
+      if (!selectedElem.current) return;
 
-    const { left } = selectedElem.current.getBoundingClientRect();
+      const { left } = selectedElem.current.getBoundingClientRect();
 
-    const progress = Math.max(0, Math.min(1, (e.pageX - left) / selectedElem.current.clientWidth));
+      const progress = Math.max(0, Math.min(1, (e.pageX - left) / selectedElem.current.clientWidth));
 
-    setMouseX(progress);
+      setMouseX(progress);
 
-    // forceDrag will be used instead of dragging if provided
-    // this allows onStartDragging() to skip the React render cycle
-    if ((forceDrag || dragging) === 'volume') update({ volume: progress });
-  };
+      // forceDrag will be used instead of dragging if provided
+      // this allows onStartDragging() to skip the React render cycle
+      if ((forceDrag || dragging) === 'volume') update({ volume: progress });
+    },
+    [dragging]
+  );
 
-  const onStartDragging = (e: MouseEvent, type: 'played' | 'volume') => {
-    if (type === 'played' && !track) return;
+  const onStartDragging = useCallback(
+    (e: MouseEvent, type: 'played' | 'volume') => {
+      if (type === 'played' && !track) return;
 
-    selectedElem.current = e.target as HTMLDivElement;
+      selectedElem.current = e.target as HTMLDivElement;
 
-    setDragging(type);
+      setDragging(type);
 
-    onDrag(e, type);
-  };
+      onDrag(e, type);
+    },
+    [onDrag]
+  );
 
-  const onStopDragging = () => {
+  const onStopDragging = useCallback(() => {
     if (!dragging) return;
 
     if (dragging === 'played' && track) {
@@ -110,9 +120,9 @@ export default function usePlayer() {
     if (dragging === 'volume') update({ volume: mouseX });
 
     setDragging('');
-  };
+  }, [dragging, track, mouseX]);
 
-  const goPrev = () => {
+  const goPrev = useCallback(() => {
     if (!queue.length) return;
 
     const payload = [...queue];
@@ -120,9 +130,9 @@ export default function usePlayer() {
     payload.unshift(payload.pop());
 
     update({ queue: payload });
-  };
+  }, [queue]);
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (!queue.length) return;
 
     const payload = [...queue];
@@ -138,27 +148,27 @@ export default function usePlayer() {
     payload.push(current);
 
     update({ queue: payload });
-  };
+  }, [queue, shuffle]);
 
-  const playedProgress = (() => {
+  const playedProgress = useMemo(() => {
     if (!track) return 0;
 
     if (dragging === 'played') return mouseX * 100;
 
     return (secondsPlayed / track.length) * 100;
-  })();
+  }, [track, mouseX, secondsPlayed]);
 
-  const fullSeconds = (() => {
+  const fullSeconds = useMemo(() => {
     if (dragging !== 'played') return Math.floor(secondsPlayed);
 
     return Math.floor((track.length * playedProgress) / 100);
-  })();
+  }, [dragging, secondsPlayed, playedProgress, track]);
 
-  const volumeProgress = (() => {
+  const volumeProgress = useMemo(() => {
     if (dragging === 'volume') return mouseX * 100;
 
     return volume * 100;
-  })();
+  }, [dragging, mouseX, volume]);
 
   useEffect(() => {
     if (!track) return;
@@ -168,7 +178,7 @@ export default function usePlayer() {
     update({ secondsPlayed: 0 });
 
     audioElem.current.play();
-  }, [track?.id, update]);
+  }, [track?.id]);
 
   // Automatically play next track in queue
   useEffect(() => {
@@ -199,7 +209,7 @@ export default function usePlayer() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [update]);
+  }, []);
 
   return {
     track,

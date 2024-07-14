@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { QueueTrack } from '../../../types';
@@ -7,19 +8,22 @@ export default function Queue() {
   const { repeat, queue, update } = useStore(({ tracks, selected, queue, repeat, update }) => ({ tracks, selected, queue, repeat, update }));
   const indexOfFirst = queue.findIndex((t) => !!t.first);
 
-  const skipTo = (track: QueueTrack) => {
-    const index = queue.indexOf(track);
+  const skipTo = useCallback(
+    (track: QueueTrack) => {
+      const index = queue.indexOf(track);
 
-    if (index === 0) return update({ secondsPlayed: 0 });
+      if (index === 0) return update({ secondsPlayed: 0 });
 
-    const payload = [...queue];
-    const skipped = payload.splice(0, index);
+      const payload = [...queue];
+      const skipped = payload.splice(0, index);
 
-    update({
-      secondsPlayed: 0,
-      queue: [...payload, ...skipped]
-    });
-  };
+      update({
+        secondsPlayed: 0,
+        queue: [...payload, ...skipped]
+      });
+    },
+    [queue, update]
+  );
 
   if (!queue.length) return false;
 

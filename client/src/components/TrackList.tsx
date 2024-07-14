@@ -1,6 +1,6 @@
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { MouseEvent } from 'react';
+import { MouseEvent, useCallback, useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { Track } from '../../../types';
@@ -14,38 +14,45 @@ export default function TrackList() {
     repeat,
     update
   }));
-  const indexOfFirst = queue.findIndex((t) => !!t.first);
-  const list = Object.values(tracks);
+  const indexOfFirst = useMemo(() => queue.findIndex((t) => !!t.first), [queue]);
+  const list = useMemo(() => Object.values(tracks), [tracks]);
 
-  const clickTrack = (track: Track) => {
-    update({
-      selected: track.id
-    });
-  };
+  const clickTrack = useCallback(
+    (track: Track) =>
+      update({
+        selected: track.id
+      }),
+    []
+  );
 
-  const playTrack = (track: Track) => {
-    update({
-      secondsPlayed: 0,
-      queue: [{ ...track, first: true }]
-    });
-  };
+  const playTrack = useCallback(
+    (track: Track) =>
+      update({
+        secondsPlayed: 0,
+        queue: [{ ...track, first: true }]
+      }),
+    [update]
+  );
 
-  const appendQueue = (e: MouseEvent<HTMLDivElement>, track: Track) => {
-    e.stopPropagation();
+  const appendQueue = useCallback(
+    (e: MouseEvent<HTMLDivElement>, track: Track) => {
+      e.stopPropagation();
 
-    if (repeat !== 'none' || indexOfFirst <= 0) {
-      return update({
-        queue: [...queue, { ...track, first: !queue.length }],
-        selected: null
-      });
-    }
+      if (repeat !== 'none' || indexOfFirst <= 0) {
+        return update({
+          queue: [...queue, { ...track, first: !queue.length }],
+          selected: null
+        });
+      }
 
-    const payload = [...queue];
+      const payload = [...queue];
 
-    payload.splice(indexOfFirst, 0, { ...track });
+      payload.splice(indexOfFirst, 0, { ...track });
 
-    update({ queue: payload, selected: null });
-  };
+      update({ queue: payload, selected: null });
+    },
+    [repeat, indexOfFirst, queue, update]
+  );
 
   return (
     <div className="flex h-full grow basis-0 flex-col overflow-auto">
